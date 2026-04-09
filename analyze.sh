@@ -44,9 +44,14 @@ call_fit() {
   local repo_name=$8
   local start_time=$9
   local analysis_file=${10}
+  local poly_only=${11}
 
 #  fit.py --in-file "${1}" --out-file "${2}" --format csv
-  fit-multivar.py --data "${in_file}" --model "${in_file%.*}.pkl" --visualization "${in_file%.*}.png" --poly-only
+  if [ "$poly_only" = "true" ]; then
+    fit-multivar.py --data "${in_file}" --model "${in_file%.*}.pkl" --visualization "${in_file%.*}.png" --poly-only
+  else
+    fit-multivar.py --data "${in_file}" --model "${in_file%.*}.pkl" --visualization "${in_file%.*}.png"
+  fi
   predict.py --model "${in_file%.*}.pkl" --data "${in_file}" --format json --output "${out_file}" --output-header
 
   progress=`echo "scale=1; p=$progress; bw=$progress_bandwidth; l=$fit_count; p + (bw/l)" | bc -l`
@@ -675,9 +680,17 @@ if check_abort $repo_path; then exit 2; fi
 
 progress_bandwidth=10
 fit_count=13
-analysis_types=('time-serial' 'time-parallel' 'space-serial' 'space-parallel' 'power-serial' 'power-parallel' 'energy-serial' 'energy-parallel' 'speedup' 'freeup' 'powerup' 'energyup')
+analysis_types_allow_poly_only=('time-serial' 'time-parallel' 'space-serial' 'space-parallel' 'power-serial' 'energy-serial' 'energy-parallel' 'speedup' 'freeup' 'energyup')
+analysis_types_allow_all=('power-parallel' 'powerup')
 
-for i in "${analysis_types[@]}"
+for i in "${analysis_types_allow_poly_only[@]}"
+do
+  echo "${i}.csv"
+  echo "${i}-fitted.json"
+  call_fit $i.csv $i-fitted.json $progress $progress_bandwidth $fit_count $id $repo $repo_name "$start_time" $analysis_file "true"
+done
+
+for i in "${analysis_types_allow_all[@]}"
 do
   echo "${i}.csv"
   echo "${i}-fitted.json"
