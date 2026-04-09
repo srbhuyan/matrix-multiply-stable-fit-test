@@ -46,7 +46,7 @@ call_fit() {
   local analysis_file=${10}
 
 #  fit.py --in-file "${1}" --out-file "${2}" --format csv
-  fit-multivar.py --data "${in_file}" --model "${in_file%.*}.pkl" --visualization "${in_file%.*}.png"
+  fit-multivar.py --data "${in_file}" --model "${in_file%.*}.pkl" --visualization "${in_file%.*}.png" --poly-only
   predict.py --model "${in_file%.*}.pkl" --data "${in_file}" --format json --output "${out_file}" --output-header
 
   progress=`echo "scale=1; p=$progress; bw=$progress_bandwidth; l=$fit_count; p + (bw/l)" | bc -l`
